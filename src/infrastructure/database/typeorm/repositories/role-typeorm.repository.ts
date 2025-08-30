@@ -1,24 +1,23 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { PermissionEntity } from '@domain/entities/permission.entity';
+import { RoleEntity } from '@domain/entities/role.entity';
+import { RoleRepository } from '@domain/repositories/role.repository';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RoleEntity } from '../../../../domain/entities/role.entity';
-import { RoleRepository } from '../../../../domain/repositories/role.repository';
+import { Repository, DeepPartial } from 'typeorm';
+import { PermissionSchema } from '../entities/permission.schema';
 import { RoleSchema } from '../entities/role.schema';
-import { PermissionEntity } from '../../../../domain/entities/permission.entity';
+import { BaseTypeOrmRepository } from './base-typeorm.repository';
 
 @Injectable()
-export class TypeOrmRoleRepository implements RoleRepository {
+export class TypeOrmRoleRepository
+  extends BaseTypeOrmRepository<RoleEntity, RoleSchema>
+  implements RoleRepository
+{
   constructor(
     @InjectRepository(RoleSchema)
-    private readonly ormRepository: Repository<RoleSchema>,
-  ) {}
-
-  async findById(id: string): Promise<RoleEntity | null> {
-    const roleSchema = await this.ormRepository.findOne({
-      where: { id },
-      relations: ['permissions'],
-    });
-    return roleSchema ? this.mapSchemaToEntity(roleSchema) : null;
+    protected readonly ormRepository: Repository<RoleSchema>,
+  ) {
+    super(ormRepository);
   }
 
   async findByName(name: string): Promise<RoleEntity | null> {
@@ -29,31 +28,11 @@ export class TypeOrmRoleRepository implements RoleRepository {
     return roleSchema ? this.mapSchemaToEntity(roleSchema) : null;
   }
 
-  async save(role: RoleEntity): Promise<RoleEntity> {
-    const roleSchema = this.mapEntityToSchema(role);
-    const savedSchema = await this.ormRepository.save(roleSchema);
-    return this.mapSchemaToEntity(savedSchema);
-  }
-
-  async delete(id: string): Promise<void> {
-    const deleteResult = await this.ormRepository.delete(id);
-    if (deleteResult.affected === 0) {
-      throw new NotFoundException(`Role with ID "${id}" not found.`);
-    }
-  }
-
-  async findAll(): Promise<RoleEntity[]> {
-    const roleSchemas = await this.ormRepository.find({
-      relations: ['permissions'],
-    });
-    return roleSchemas.map(this.mapSchemaToEntity);
-  }
-
   async findAllWithPermissions(): Promise<RoleEntity[]> {
-    return this.findAll();
+    return this.findAll({ relations: ['permissions'] });
   }
 
-  private mapSchemaToEntity(schema: RoleSchema): RoleEntity {
+  protected mapSchemaToEntity(schema: RoleSchema): RoleEntity {
     const entity = new RoleEntity();
     entity.id = schema.id;
     entity.name = schema.name;
@@ -72,22 +51,37 @@ export class TypeOrmRoleRepository implements RoleRepository {
     return entity;
   }
 
-  private mapEntityToSchema(entity: RoleEntity): RoleSchema {
+  protected mapEntityToSchema(entity: RoleEntity): RoleSchema {
     const schema = new RoleSchema();
     if (entity.id) schema.id = entity.id;
     schema.name = entity.name;
     if (entity.createdAt) schema.createdAt = entity.createdAt;
     if (entity.updatedAt) schema.updatedAt = entity.updatedAt;
-
     schema.permissions = entity.permissions
       ? entity.permissions.map((permEntity) => {
-          const permSchema =
-            new (require('../entities/permission.schema').PermissionSchema)();
+          const permSchema = new PermissionSchema();
           if (permEntity.id) permSchema.id = permEntity.id;
           permSchema.name = permEntity.name;
           return permSchema;
         })
       : [];
     return schema;
+  }
+
+  protected mapPartialEntityToSchema(
+    partialEntity: Partial<RoleEntity>,
+  ): DeepPartial<RoleSchema> {
+    const partialSchema: DeepPartial<RoleSchema> = {};
+    if (partialEntity.name !== undefined)
+      partialSchema.name = partialEntity.name;
+    if (partialEntity.permissions !== undefined) {
+      partialSchema.permissions = partialEntity.permissions.map((p) => {
+        const permSchema = new PermissionSchema();
+        if (p.id) permSchema.id = p.id;
+        permSchema.name = p.name;
+        return permSchema;
+      });
+    }
+    return partialSchema;
   }
 }

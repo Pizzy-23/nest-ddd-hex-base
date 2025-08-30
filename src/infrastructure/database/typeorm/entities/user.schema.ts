@@ -1,11 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, ManyToMany, JoinTable } from 'typeorm';
 import { RoleSchema } from './role.schema';
+import { BaseTypeOrmSchema } from './base-typeorm.schema'; 
 
 @Entity('users')
-export class UserSchema {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class UserSchema extends BaseTypeOrmSchema { 
   @Column()
   name: string;
 
@@ -14,12 +12,6 @@ export class UserSchema {
 
   @Column({ name: 'password_hash' })
   passwordHash: string;
-
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
 
   @ManyToMany(() => RoleSchema, { cascade: true, eager: true })
   @JoinTable({

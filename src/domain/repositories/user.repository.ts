@@ -1,7 +1,6 @@
 import { UserEntity } from '../entities/user.entity';
-
-export abstract class UserRepository {
-  abstract findById(id: string): Promise<UserEntity | null>;
+import { BaseRepository } from './base.repository'; 
+export abstract class UserRepository extends BaseRepository<UserEntity> {
   abstract findByEmail(email: string): Promise<UserEntity | null>;
-  abstract save(user: UserEntity): Promise<UserEntity>;
+  abstract findAllWithRoles(): Promise<UserEntity[]>;
 }

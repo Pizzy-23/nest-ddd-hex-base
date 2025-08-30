@@ -1,16 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column } from 'typeorm';
+import { BaseTypeOrmSchema } from './base-typeorm.schema';
 
 @Entity('permissions')
-export class PermissionSchema {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class PermissionSchema extends BaseTypeOrmSchema { 
   @Column({ unique: true })
   name: string;
-
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
 }

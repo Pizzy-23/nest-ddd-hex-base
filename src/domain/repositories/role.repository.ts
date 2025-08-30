@@ -1,7 +1,7 @@
-import { RoleEntity } from '../entities/role.entity';
+import { RoleEntity } from "@domain/entities/role.entity";
+import { BaseRepository } from "./base.repository";
 
-export abstract class RoleRepository {
+export abstract class RoleRepository extends BaseRepository<RoleEntity> {
   abstract findByName(name: string): Promise<RoleEntity | null>;
-  abstract save(role: RoleEntity): Promise<RoleEntity>;
-  abstract findAll(): Promise<RoleEntity[]>;
+  abstract findAllWithPermissions(): Promise<RoleEntity[]>;
 }

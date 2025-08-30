@@ -1,40 +1,39 @@
-import { Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../../../../domain/entities/user.entity';
-import { UserRepository } from '../../../../domain/repositories/user.repository';
-import { UserSchema } from '../entities/user.schema';
-import { RoleSchema } from '../entities/role.schema';
+import { PermissionEntity } from "@domain/entities/permission.entity";
+import { RoleEntity } from "@domain/entities/role.entity";
+import { UserEntity } from "@domain/entities/user.entity";
+import { UserRepository } from "@domain/repositories/user.repository";
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, DeepPartial } from "typeorm";
+import { RoleSchema } from "../entities/role.schema";
+import { UserSchema } from "../entities/user.schema";
+import { BaseTypeOrmRepository } from "./base-typeorm.repository";
 
 @Injectable()
-export class TypeOrmUserRepository implements UserRepository {
+export class TypeOrmUserRepository
+  extends BaseTypeOrmRepository<UserEntity, UserSchema>
+  implements UserRepository {
+
   constructor(
     @InjectRepository(UserSchema)
-    private readonly ormRepository: Repository<UserSchema>,
-  ) {}
-
-  async findById(id: string): Promise<UserEntity | null> {
-    const userSchema = await this.ormRepository.findOne({ where: { id }, relations: ['roles', 'roles.permissions'] });
-    return userSchema ? this.mapSchemaToEntity(userSchema) : null;
+    protected readonly ormRepository: Repository<UserSchema>,
+  ) {
+    super(ormRepository);
   }
 
   async findByEmail(email: string): Promise<UserEntity | null> {
-    const userSchema = await this.ormRepository.findOne({ where: { email }, relations: ['roles', 'roles.permissions'] });
+    const userSchema = await this.ormRepository.findOne({
+      where: { email },
+      relations: ['roles', 'roles.permissions'],
+    });
     return userSchema ? this.mapSchemaToEntity(userSchema) : null;
   }
 
-  async save(user: UserEntity): Promise<UserEntity> {
-    const userSchema = this.mapEntityToSchema(user);
-    const savedSchema = await this.ormRepository.save(userSchema);
-    return this.mapSchemaToEntity(savedSchema);
-  }
-
   async findAllWithRoles(): Promise<UserEntity[]> {
-    const userSchemas = await this.ormRepository.find({ relations: ['roles', 'roles.permissions'] });
-    return userSchemas.map(this.mapSchemaToEntity);
+    return this.findAll({ relations: ['roles', 'roles.permissions'] });
   }
 
-  private mapSchemaToEntity(schema: UserSchema): UserEntity {
+  protected mapSchemaToEntity(schema: UserSchema): UserEntity {
     const entity = new UserEntity();
     entity.id = schema.id;
     entity.name = schema.name;
@@ -42,37 +41,61 @@ export class TypeOrmUserRepository implements UserRepository {
     entity.passwordHash = schema.passwordHash;
     entity.createdAt = schema.createdAt;
     entity.updatedAt = schema.updatedAt;
-    entity.roles = schema.roles ? schema.roles.map(roleSchema => {
-      const roleEntity = new (require('../../../../domain/entities/role.entity').RoleEntity)();
-      roleEntity.id = roleSchema.id;
-      roleEntity.name = roleSchema.name;
-      roleEntity.createdAt = roleSchema.createdAt;
-      roleEntity.updatedAt = roleSchema.updatedAt;
-      roleEntity.permissions = roleSchema.permissions ? roleSchema.permissions.map(permSchema => {
-          const permEntity = new (require('../../../../domain/entities/permission.entity').PermissionEntity)();
-          permEntity.id = permSchema.id;
-          permEntity.name = permSchema.name;
-          return permEntity;
-      }) : [];
-      return roleEntity;
-    }) : [];
+    entity.roles = schema.roles
+      ? schema.roles.map((roleSchema) => {
+          const roleEntity = new RoleEntity();
+          roleEntity.id = roleSchema.id;
+          roleEntity.name = roleSchema.name;
+          roleEntity.createdAt = roleSchema.createdAt;
+          roleEntity.updatedAt = roleSchema.updatedAt;
+          roleEntity.permissions = roleSchema.permissions
+            ? roleSchema.permissions.map((permSchema) => {
+                const permEntity = new PermissionEntity();
+                permEntity.id = permSchema.id;
+                permEntity.name = permSchema.name;
+                permEntity.createdAt = permSchema.createdAt;
+                permEntity.updatedAt = permSchema.updatedAt;
+                return permEntity;
+              })
+            : [];
+          return roleEntity;
+        })
+      : [];
     return entity;
   }
 
-  private mapEntityToSchema(entity: UserEntity): UserSchema {
+  protected mapEntityToSchema(entity: UserEntity): UserSchema {
     const schema = new UserSchema();
-    schema.id = entity.id;
+    if (entity.id) schema.id = entity.id;
     schema.name = entity.name;
     schema.email = entity.email;
     schema.passwordHash = entity.passwordHash;
-    schema.createdAt = entity.createdAt;
-    schema.updatedAt = entity.updatedAt;
-    schema.roles = entity.roles ? entity.roles.map(roleEntity => {
-        const roleSchema = new RoleSchema();
-        roleSchema.id = roleEntity.id;
-        roleSchema.name = roleEntity.name;
-        return roleSchema;
-    }) : [];
+    if (entity.createdAt) schema.createdAt = entity.createdAt;
+    if (entity.updatedAt) schema.updatedAt = entity.updatedAt;
+    schema.roles = entity.roles
+      ? entity.roles.map((roleEntity) => {
+          const roleSchema = new RoleSchema();
+          if (roleEntity.id) roleSchema.id = roleEntity.id;
+          roleSchema.name = roleEntity.name;
+          return roleSchema;
+        })
+      : [];
     return schema;
+  }
+
+  protected mapPartialEntityToSchema(partialEntity: Partial<UserEntity>): DeepPartial<UserSchema> {
+    const partialSchema: DeepPartial<UserSchema> = {};
+    if (partialEntity.name !== undefined) partialSchema.name = partialEntity.name;
+    if (partialEntity.email !== undefined) partialSchema.email = partialEntity.email;
+    if (partialEntity.passwordHash !== undefined) partialSchema.passwordHash = partialEntity.passwordHash;
+    if (partialEntity.roles !== undefined) {
+      partialSchema.roles = partialEntity.roles.map(r => {
+        const roleSchema = new RoleSchema();
+        if (r.id) roleSchema.id = r.id; 
+        roleSchema.name = r.name;
+        return roleSchema;
+      });
+    }
+    return partialSchema;
   }
 }
