@@ -1,10 +1,27 @@
-import { Global, Module } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
 import { DomainEventsPublisher } from '../../domain/domain-events/domain-events-publisher';
 import { DomainEventsStore } from '../../domain/domain-events/domain-events-store';
 import { DomainEventsSubscriber } from '../../domain/domain-events/domain-events-subscriber';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { CustomCacheInterceptor } from './interceptors/custom-cache.interceptor';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Global()
 @Module({
-  providers: [DomainEventsPublisher, DomainEventsStore, DomainEventsSubscriber],
+  imports: [
+    CacheModule.register({
+      ttl: 60 * 1000,
+      isGlobal: true,
+    }),
+  ],
+  providers: [
+    DomainEventsPublisher,
+    DomainEventsStore,
+    DomainEventsSubscriber,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CustomCacheInterceptor,
+    },
+  ],
 })
 export class SharedModule {}
