@@ -1,0 +1,17 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString, IsOptional, MinLength, MaxLength } from 'class-validator';
+
+export class Create__Name__Dto {
+  @ApiProperty({ example: 'My New Item', description: 'Name of the item', minLength: 3, maxLength: 50 })
+  @IsNotEmpty()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(50)
+  readonly name: string;
+
+  @ApiProperty({ example: 'Some detailed description.', description: 'Description of the item', required: false, maxLength: 255 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  readonly description?: string;
+}

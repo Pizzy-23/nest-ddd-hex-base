@@ -1,0 +1,52 @@
+import { Controller, Post, Body, Res, HttpStatus, Get, Param, Query as NestQuery } from '@nestjs/common';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { ApiTags, ApiOperation, ApiResponse, ApiOkResponse, ApiNotFoundResponse, ApiCreatedResponse } from '@nestjs/swagger';
+import { Response } from 'express';
+
+// DTOs
+import { Create__Name__Dto } from '../../application/dtos/create-__name__.dto';
+import { __Name__Dto } from '../../application/dtos/__name__.dto';
+
+// Use-Cases (que atuam como Handlers)
+import { Create__Name__UseCase } from '../../application/use-cases/create-__name__.use-case';
+import { FindAll__Names__Query, FindAll__Names__UseCase } from '../../application/use-cases/find-all-__names__.use-case';
+import { Get__Name__ByIdQuery, Get__Name__ByIdUseCase } from '../../application/use-cases/get-__name__-by-id.use-case';
+
+@ApiTags('__names__')
+@Controller('__names__')
+export class __Name__Controller {
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
+  ) {}
+
+  @Post()
+  @ApiOperation({ summary: 'Create a new __name__' })
+  @ApiCreatedResponse({ description: '__Name__ successfully created', type: __Name__Dto })
+  async create__Name__(@Body() body: Create__Name__Dto, @Res() res: Response) {
+    const __name__Id = await this.commandBus.execute(body);
+
+    const created__name__ = new __Name__Dto({
+      id: __name__Id,
+      ...body,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    res.status(HttpStatus.CREATED).json(created__name__);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get a list of all __names__' })
+  @ApiOkResponse({ description: 'List of __names__ retrieved successfully', type: [__Name__Dto] })
+  async findAll__Names__(\@NestQuery() query: FindAll__Names__Query): Promise<__Name__Dto[]> {
+    return this.queryBus.execute(new FindAll__Names__Query(query));
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a __name__ by its ID' })
+  @ApiOkResponse({ description: '__Name__ retrieved successfully', type: __Name__Dto })
+  @ApiNotFoundResponse({ description: '__Name__ not found' })
+  async get__Name__ById(\@Param('id') id: string): Promise<__Name__Dto> {
+    return this.queryBus.execute(new Get__Name__ByIdQuery(id));
+  }
+}

@@ -1,0 +1,22 @@
+import { ApiProperty } from '@nestjs/swagger';
+
+export class __Name__Dto {
+  @ApiProperty({ example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', description: 'Unique ID of the item' })
+  readonly id: string;
+
+  @ApiProperty({ example: 'My New Item', description: 'Name of the item' })
+  readonly name: string;
+
+  @ApiProperty({ example: 'Some detailed description.', description: 'Description of the item', required: false })
+  readonly description?: string;
+
+  @ApiProperty({ example: '2023-10-26T10:00:00.000Z', description: 'Creation date in ISO 8601 format' })
+  readonly createdAt: Date;
+
+  @ApiProperty({ example: '2023-10-26T11:30:00.000Z', description: 'Last update date in ISO 8601 format' })
+  readonly updatedAt: Date;
+
+  constructor(props: Partial<__Name__Dto>) {
+    Object.assign(this, props);
+  }
+}
