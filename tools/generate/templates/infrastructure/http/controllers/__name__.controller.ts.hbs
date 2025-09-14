@@ -3,11 +3,11 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ApiTags, ApiOperation, ApiResponse, ApiOkResponse, ApiNotFoundResponse, ApiCreatedResponse } from '@nestjs/swagger';
 import { Response } from 'express';
 
-// DTOs
+// DTOs (dentro do módulo)
 import { Create__Name__Dto } from '../../application/dtos/create-__name__.dto';
 import { __Name__Dto } from '../../application/dtos/__name__.dto';
 
-// Use-Cases (que atuam como Handlers)
+// Use-Cases (que atuam como Handlers, dentro do módulo)
 import { Create__Name__UseCase } from '../../application/use-cases/create-__name__.use-case';
 import { FindAll__Names__Query, FindAll__Names__UseCase } from '../../application/use-cases/find-all-__names__.use-case';
 import { Get__Name__ByIdQuery, Get__Name__ByIdUseCase } from '../../application/use-cases/get-__name__-by-id.use-case';

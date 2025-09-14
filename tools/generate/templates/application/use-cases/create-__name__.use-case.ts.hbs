@@ -3,7 +3,7 @@ import { Inject } from '@nestjs/common';
 import { Create__Name__Dto } from '../dtos/create-__name__.dto';
 import { __Name__Entity } from '../../domain/entities/__name__.entity';
 import { __Name__Repository } from '../../domain/repositories/__name__.repository';
-import { UnitOfWork } from '../../../libs/ddd/domain/base-classes/unit-of-work';
+import { UnitOfWork } from '../../../../../../libs/ddd/domain/base-classes/unit-of-work'; // Corrigido path
 
 @CommandHandler(Create__Name__Dto)
 export class Create__Name__UseCase implements ICommandHandler<Create__Name__Dto, string> {

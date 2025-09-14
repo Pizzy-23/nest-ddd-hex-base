@@ -30,7 +30,7 @@ export class FindAll__Names__Query {
 export class FindAll__Names__UseCase implements IQueryHandler<FindAll__Names__Query, __Name__Dto[]> {
   constructor(
     @Inject(__Name__Repository)
-    private readonly __name__Repository: __Name__Repository,
+    private readonly __name__Repository: __name__Repository,
   ) {}
 
   async execute(query: FindAll__Names__Query): Promise<__Name__Dto[]> {

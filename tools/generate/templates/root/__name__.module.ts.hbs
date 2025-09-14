@@ -2,22 +2,22 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-// CONTROLLERS (dentro do módulo)
+// CONTROLLERS
 import { __Name__Controller } from './infrastructure/http/controllers/__name__.controller';
 
-// REPOSITORIES (Domain Port & Infrastructure Implementation, dentro do módulo)
+// REPOSITORIES (Domain Port & Infrastructure Implementation)
 import { __Name__Repository } from './domain/repositories/__name__.repository';
 import { __Name__TypeormRepository } from './infrastructure/database/typeorm/repositories/__name__-typeorm.repository';
 import { __Name__Schema } from './infrastructure/database/typeorm/entities/__name__.schema';
 
-// USE CASES (Command & Query Handlers, dentro do módulo)
+// USE CASES (Command & Query Handlers)
 import { Create__Name__UseCase } from './application/use-cases/create-__name__.use-case';
 import { FindAll__Names__UseCase } from './application/use-cases/find-all-__names__.use-case';
 import { Get__Name__ByIdUseCase } from './application/use-cases/get-__name__-by-id.use-case';
 
-// Libs do Nest-DDD-Hex-Base (Ajustado para alcançar 'libs/' de dentro de 'src/application/modules/__name__/')
-import { UnitOfWork } from '../../../../../libs/ddd/domain/base-classes/unit-of-work'; // Corrigido path
-import { ExceptionHelper } from '../../../../../libs/ddd/exception-helper'; // Corrigido path (assumindo libs/ddd/exception-helper.ts)
+// Libs do Nest-DDD-Hex-Base
+import { UnitOfWork } from '../libs/ddd/domain/base-classes/unit-of-work'; // CORRIGIDO (../libs/)
+import { ExceptionHelper } from '../libs/ddd/exception-helper'; // CORRIGIDO (assumindo libs/ddd/exception-helper.ts)
 
 const useCases = [
   Create__Name__UseCase,

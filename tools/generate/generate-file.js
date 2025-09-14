@@ -2,16 +2,16 @@ const fs = require('fs');
 const path = require('path');
 
 const templatesDir = path.resolve(__dirname, 'templates');
-const modulesDir = path.resolve(__dirname, '../../src/modules');
+// O novo módulo raiz será src/application/modules/__name__/
+const srcApplicationModulesDir = path.resolve(__dirname, '../../src/application/modules'); 
+
 const appModulePath = path.resolve(__dirname, '../../src/app.module.ts');
 
 function toPascalCase(str) {
-  // Converte "product-item" para "ProductItem"
   return str.replace(/(?:^|-)(\w)/g, (_, c) => c.toUpperCase());
 }
 
 function toKebabCase(str) {
-  // Converte "UserPost" para "user-post" ou "user" para "user"
   return str.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase();
 }
 
@@ -19,7 +19,7 @@ async function generateFiles(name) {
   const fileName = toKebabCase(name); // Ex: 'user-post'
   const className = toPascalCase(name); // Ex: 'UserPost'
   const pluralName = toKebabCase(name) + 's'; // Ex: 'user-posts' para tabelas/rotas
-  const singularCapitalized = className; // Usado para referências a objetos no código
+  const singularCapitalized = className;
 
   console.log(`\nIniciando geração para o recurso: ${singularCapitalized} (${fileName})`);
 
@@ -38,7 +38,6 @@ async function generateFiles(name) {
     return content;
   };
 
-  // Helper para ler diretórios recursivamente e ignorar arquivos específicos
   const readDirRecursive = (dir, fileList = []) => {
     const files = fs.readdirSync(dir);
 
@@ -46,8 +45,7 @@ async function generateFiles(name) {
       const filePath = path.join(dir, file);
       const stat = fs.statSync(filePath);
 
-      // Ignora arquivos/diretórios que não são templates ou de configuração do git
-      if (file.startsWith('.') || file.endsWith('.txt')) { // Você pode adicionar mais condições
+      if (file.startsWith('.') || file.endsWith('.txt')) {
         return;
       }
 
@@ -61,35 +59,46 @@ async function generateFiles(name) {
   };
 
   const templateFiles = readDirRecursive(templatesDir);
-  const targetModuleDir = path.join(modulesDir, fileName); // src/modules/user ou src/modules/product-item
+  
+  // A pasta raiz do NOVO módulo, ex: src/application/modules/test/
+  const currentModuleBaseDestDir = path.join(srcApplicationModulesDir, fileName); 
 
-  // Criar o diretório raiz do novo módulo
-  if (!fs.existsSync(targetModuleDir)) {
-    fs.mkdirSync(targetModuleDir, { recursive: true });
-    console.log(`  Criado diretório: ${path.relative(process.cwd(), targetModuleDir)}`);
+  // Cria a pasta raiz do novo módulo, ex: src/application/modules/test/
+  if (!fs.existsSync(currentModuleBaseDestDir)) {
+    fs.mkdirSync(currentModuleBaseDestDir, { recursive: true });
+    console.log(`  Criado diretório base do módulo: ${path.relative(process.cwd(), currentModuleBaseDestDir)}`);
   }
+
 
   for (const templatePath of templateFiles) {
     let relativePathFromTemplates = path.relative(templatesDir, templatePath);
+    // 
+    // CORREÇÃO CRUCIAL AQUI: Normaliza barras para usar '/' independente do OS
+    // 
+    relativePathFromTemplates = relativePathFromTemplates.replace(/\\/g, '/');
+
     let finalTargetPath;
 
-    // A regra para o module principal (que está na raiz dos templates)
-    if (relativePathFromTemplates === `__name__.module.ts.hbs`) {
-      finalTargetPath = path.join(targetModuleDir, `${fileName}.module.ts`);
-    } else {
-      // Para os outros arquivos dentro das subpastas, apenas substituímos o __name__/__names__
-      let processedPath = relativePathFromTemplates;
-      for (const key in replacements) {
+    // A pasta base para este template é a raiz do novo módulo, currentModuleBaseDestDir
+    // A única exceção seriam arquivos que não fazem parte do MÓDULO (o que não é o caso aqui)
+
+    // Processar placeholders no nome do arquivo (e caminhos de subpastas do template, se houver)
+    let processedRelativePath = relativePathFromTemplates; // Nome do arquivo de template
+    for (const key in replacements) {
         const regex = new RegExp(key, 'g');
-        processedPath = processedPath.replace(regex, replacements[key]);
-      }
-      finalTargetPath = path.join(targetModuleDir, processedPath.replace('.hbs', ''));
+        processedRelativePath = processedRelativePath.replace(regex, replacements[key]);
     }
+
+    // O finalTargetPath será sempre dentro da pasta do módulo.
+    // Ex: templates/application/dtos/create-__name__.dto.ts.hbs 
+    //  -> src/application/modules/test/application/dtos/create-test.dto.ts
+    finalTargetPath = path.join(currentModuleBaseDestDir, processedRelativePath.replace('.hbs', ''));
     
-    // Cria diretórios intermediários se não existirem
+    // Cria diretórios intermediários no destino se não existirem
     const targetDir = path.dirname(finalTargetPath);
     if (!fs.existsSync(targetDir)) {
       fs.mkdirSync(targetDir, { recursive: true });
+      console.log(`  Criado sub-diretório de destino: ${path.relative(process.cwd(), targetDir)}`);
     }
 
     const fileContent = fs.readFileSync(templatePath, 'utf8');
@@ -104,21 +113,22 @@ async function generateFiles(name) {
   // Parte extra: Adicionar o módulo ao app.module.ts
   console.log(`Adicionando ${singularCapitalized}Module a ${path.relative(process.cwd(), appModulePath)}...`);
   try {
-    await addModuleToAppModule(singularCapitalized, fileName);
+    await addModuleToAppModule(singularCapitalized, fileName); 
     console.log(`  Módulo ${singularCapitalized}Module adicionado ao app.module.ts.`);
   } catch (error) {
     console.error(`  Erro ao adicionar o módulo ao app.module.ts: ${error.message}`);
-    console.log(`  Por favor, adicione "import { ${singularCapitalized}Module } from './modules/${fileName}/${fileName}.module';" e '${singularCapitalized}Module' ao array de imports em seu app.module.ts manualmente.`);
+    console.log(`  Por favor, adicione "import { ${singularCapitalized}Module } from './application/modules/${fileName}/${fileName}.module';" e '${singularCapitalized}Module' ao array de imports em seu app.module.ts manualmente.`);
   }
 
   console.log(`\nGerador finalizado para '${singularCapitalized}'.`);
 }
 
 
-// --- Lógica para adicionar o módulo ao app.module.ts ---
+// --- Lógica para adicionar o módulo ao app.module.ts (corrigindo importPath novamente) ---
 async function addModuleToAppModule(className, kebabCaseName) {
   const moduleName = `${className}Module`;
-  const importPath = `./modules/${kebabCaseName}/${kebabCaseName}.module`;
+  // Path para o módulo é a partir de src/, então: ./application/modules/__name__/__name__.module
+  const importPath = `./application/modules/${kebabCaseName}/${kebabCaseName}.module`; 
 
   let appModuleContent = fs.readFileSync(appModulePath, 'utf8');
 
@@ -126,22 +136,19 @@ async function addModuleToAppModule(className, kebabCaseName) {
   const newImportLine = `import { ${moduleName} } from '${importPath}';`;
 
   if (!appModuleContent.includes(newImportLine)) {
-    // Tenta encontrar a última linha de import ou a linha antes do @Module para inserir
     const lastImportRegex = /(import\s+\{[^{}]+\}\s+from\s+['"].*['"];)(\n|\r\n|$)(?=(?:(\n|\r\n))?@Module)/g;
     const match = Array.from(appModuleContent.matchAll(lastImportRegex));
     
     if (match.length > 0) {
-      const lastMatch = match[match.length - 1];
+      const lastMatch = match[lastMatch.length - 1]; // Use lastMatch to get the correct match
       const insertIndex = lastMatch.index + lastMatch[0].length;
       appModuleContent = appModuleContent.substring(0, insertIndex) + `\n${newImportLine}` + appModuleContent.substring(insertIndex);
     } else {
-      // Fallback: se não encontrar um lugar adequado, insere no topo do arquivo.
       appModuleContent = newImportLine + '\n\n' + appModuleContent;
     }
   }
 
   // 2. Adicionar ao array de 'imports' dentro do @Module()
-  // Procura por @Module({ imports: [...]
   const moduleImportsRegex = /(@Module\(\{[\s\S]*?imports:\s*\[)([^\]]*)(\])/;
   const importsMatch = appModuleContent.match(moduleImportsRegex);
 
@@ -150,10 +157,8 @@ async function addModuleToAppModule(className, kebabCaseName) {
     if (!existingImports.includes(moduleName)) {
       let updatedImports;
       if (existingImports === '') {
-        // Se não houver imports, adicione com indentação
         updatedImports = `\n    ${moduleName}\n  `;
       } else {
-        // Adicione o novo módulo com a mesma indentação dos existentes
         updatedImports = `${existingImports.trim()},\n    ${moduleName}\n  `;
       }
       appModuleContent = appModuleContent.replace(
@@ -162,7 +167,6 @@ async function addModuleToAppModule(className, kebabCaseName) {
       );
     }
   } else {
-    // Se o @Module com imports não for encontrado, tenta injetar um novo bloco de imports
     console.warn(`[WARN] Não foi possível encontrar um bloco de 'imports' em @Module(). Tentando criar um.`);
     const moduleDecoratorRegex = /(@Module\(\{)/;
     if (appModuleContent.match(moduleDecoratorRegex)) {

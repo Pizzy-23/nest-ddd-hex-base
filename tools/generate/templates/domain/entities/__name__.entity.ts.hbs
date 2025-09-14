@@ -1,6 +1,6 @@
-import { AggregateRoot } from '../../../../libs/ddd/domain/base-classes/aggregate-root.base';
-import { Uuid } from '../../../../libs/ddd/domain/value-objects/uuid.value-object';
-import { DomainEvent } from '../../../../libs/ddd/domain/domain-events/domain-event';
+import { AggregateRoot } from '../../../../../../libs/ddd/domain/base-classes/aggregate-root.base'; // Corrigido path
+import { Uuid } from '../../../../../../libs/ddd/domain/value-objects/uuid.value-object'; // Corrigido path
+import { DomainEvent } from '../../../../../../libs/ddd/domain/domain-events/domain-event'; // Corrigido path
 
 export class __Name__CreatedDomainEvent extends DomainEvent {
   constructor(props: Omit<__Name__CreatedDomainEvent, 'correlationId' | 'id' | 'createdAt' | 'entityId'>) {

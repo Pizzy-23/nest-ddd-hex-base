@@ -20,7 +20,7 @@ export class Get__Name__ByIdQuery {
 export class Get__Name__ByIdUseCase implements IQueryHandler<Get__Name__ByIdQuery, __Name__Dto> {
   constructor(
     @Inject(__Name__Repository)
-    private readonly __name__Repository: __Name__Repository,
+    private readonly __name__Repository: __name__Repository,
   ) {}
 
   async execute(query: Get__Name__ByIdQuery): Promise<__Name__Dto> {
