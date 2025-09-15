@@ -1,46 +1,33 @@
 import { Injectable } from '@nestjs/common';
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsOptional, Min } from 'class-validator';
-import { Type } from 'class-transformer';
-import { __Name__Repository } from '@domain/repositories/__name__.repository'; 
-import { __Name__Dto } from '../dtos/__name__.dto'; // Relativo a ..dtos
+import { __Name__Entity } from '@domain/entities/__name__.entity';
+import { __Name__Repository } from '@domain/repositories/__name__.repository';
 
-export class FindAll__Names__Query { 
-  @ApiPropertyOptional({ description: 'Number of items to skip for pagination' })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Type(() => Number)
-  readonly skip?: number;
-
-  @ApiPropertyOptional({ description: 'Number of items to take for pagination' })
-  @IsOptional()
-  @IsNumber()
-  @Min(1)
-  @Type(() => Number)
-  readonly take?: number;
-
-  constructor(props: Partial<FindAll__Names__Query>) {
-    Object.assign(this, props);
-  }
-}
+// Use um Query DTO se precisar de filtros ou paginadores mais robustos.
+// O seu exemplo FindAllUsersUseCase usa 'options' no execute. Vamos manter flexível.
+// export class FindAll__Names__Query {
+//   filter?: any;
+//   relations?: string[];
+//   orderBy?: { [key: string]: 'ASC' | 'DESC' };
+//   skip?: number;
+//   take?: number;
+// }
 
 @Injectable()
-export class FindAll__Names__UseCase { 
+export class FindAll__Names__UseCase {
   constructor(
     private readonly __name__Repository: __Name__Repository,
   ) {}
 
-  async execute(query: FindAll__Names__Query): Promise<__Name__Dto[]> { 
-    const { skip, take } = query;
-    const __names__ = await this.__name__Repository.findAll(skip, take);
-
-    return __names__.map((__name__) => new __Name__Dto({
-      id: __name__.id.value,
-      name: __name__.name,
-      description: __name__.description,
-      createdAt: __name__.createdAt,
-      updatedAt: __name__.updatedAt,
-    }));
+  async execute(options?: {
+    filter?: any;
+    relations?: string[];
+    orderBy?: { [key: string]: 'ASC' | 'DESC' };
+    skip?: number;
+    take?: number;
+    // TODO: Adicione mais opções de query aqui.
+  }): Promise<__Name__Entity[]> {
+    // Seu UserRepository usa `findAllWithRoles()`. O seu gerador pode decidir se chama
+    // `findAll()` ou `findAllWithRelations()` ou outro método específico do repositório.
+    return await this.__name__Repository.findAll(options); // Assumindo que findAll agora aceita opções.
   }
 }

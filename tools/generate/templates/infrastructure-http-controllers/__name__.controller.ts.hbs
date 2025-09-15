@@ -4,80 +4,141 @@ import {
   Post,
   Body,
   Param,
-  // Removendo UseGuards e Roles (podem ser adicionados manualmente conforme o módulo global os define)
-  // UseGuards, 
-  // Res, 
-  // HttpStatus,
-  // Para Responses mais padronizadas, pode usar o Response da NestJS, ou o ResponseUtil.
+  UseGuards,
+  Res,
+  HttpStatus,
+  Put,
+  Delete,
 } from '@nestjs/common';
-import { Create__Name__Dto } from '@app/modules/__name__/dtos/create-__name__.dto'; 
+import { Response } from 'express'; 
+
+// Importações específicas do módulo __Name__
+import { Create__Name__Dto } from '@app/modules/__name__/dtos/create-__name__.dto';
+import { Update__Name__Dto } from '@app/modules/__name__/dtos/update-__name__.dto'; 
 import { __Name__Dto } from '@app/modules/__name__/dtos/__name__.dto'; 
-import { Create__Name__UseCase } from '@app/modules/__name__/use-cases/create-__name__.use-case'; 
-import { FindAll__Names__UseCase } from '@app/modules/__name__/use-cases/find-all-__names__.use-case'; 
-import { Get__Name__ByIdUseCase } from '@app/modules/__name__/use-cases/get-__name__-by-id.use-case'; 
+import { Create__Name__UseCase } from '@app/modules/__name__/use-cases/create-__name__.use-case';
+import { FindAll__Names__UseCase } from '@app/modules/__name__/use-cases/find-all-__names__.use-case';
+import { Get__Name__ByIdUseCase } from '@app/modules/__name__/use-cases/get-__name__-by-id.use-case';
+import { Update__Name__UseCase } from '@app/modules/__name__/use-cases/update-__name__.use-case'; 
+import { Delete__Name__UseCase } from '@app/modules/__name__/use-cases/delete-__name__.use-case'; 
 
-// IMPORTAÇÕES GLOBAIS COM ALIAS (RoleEnum, AuthGuard, ResponseUtil)
-// import { AuthGuard } from '@app/modules/auth/guards/auth.guard'; 
-// import { RolesGuard } from '@app/modules/auth/guards/roles.guard'; 
-// import { Roles } from '@app/modules/auth/decorators/roles.decorator'; 
-// import { RoleEnum } from '@domain/constants/roles.enum'; 
-// import { Response } from 'express'; // Para usar express res diretamente
-// import { ResponseUtil } from '@infra/common/utils/response.util'; 
-// import { __Name__Entity } from '@domain/entities/__name__.entity'; // Importa a entidade de domínio global
+// Importações globais ou compartilhadas (Auth, Roles, Utils)
+import { AuthGuard } from '@app/modules/auth/guards/auth.guard';
+import { RolesGuard } from '@app/modules/auth/guards/roles.guard';
+import { Roles } from '@app/modules/auth/decorators/roles.decorator';
+import { RoleEnum } from '@domain/constants/roles.enum';
+import { ResponseUtil } from '@infra/common/utils/response.util';
+import { __Name__Entity } from '@domain/entities/__name__.entity'; 
 
-@Controller('__names__')
-// @UseGuards(AuthGuard, RolesGuard) // Descomente e ajuste conforme necessário para o módulo Auth
+@Controller('__names__') 
+@UseGuards(AuthGuard, RolesGuard) 
 export class __Name__Controller {
   constructor(
     private readonly create__Name__UseCase: Create__Name__UseCase,
     private readonly findAll__Names__UseCase: FindAll__Names__UseCase,
     private readonly get__Name__ByIdUseCase: Get__Name__ByIdUseCase,
+    private readonly update__Name__UseCase: Update__Name__UseCase, 
+    private readonly delete__Name__UseCase: Delete__Name__UseCase, 
   ) {}
 
-  private map__Name__EntityToDto(__name__: __Name__Entity): __Name__Dto {
-    const __name__Dto = new __Name__Dto({ // Adapta para usar construtor do DTO se aplicável
-      id: __name__.id,
-      name: __name__.name,
-      description: __name__.description,
-      // outros campos da sua entidade
-      // ex: roles: __name__.roles ? __name__.roles.map((role) => role.name) : [],
-      createdAt: __name__.createdAt, // BaseEntity deve ter createdAt/updatedAt
-      updatedAt: __name__.updatedAt,
-    });
+  /**
+   * Converte uma __Name__Entity (entidade de domínio) para um __Name__Dto (DTO de resposta).
+   * @param __name__Entity A entidade de domínio a ser mapeada.
+   * @returns Um objeto __Name__Dto pronto para ser serializado na resposta da API.
+   */
+  private map__Name__EntityToDto(__name__Entity: __Name__Entity): __Name__Dto {
+    const __name__Dto = new __Name__Dto();
+    __name__Dto.id = __name__Entity.id;
+    __name__Dto.createdAt = __name__Entity.createdAt;
+    __name__Dto.updatedAt = __name__Entity.updatedAt;
+
+    // TODO: Adicione aqui outros campos específicos da entidade '__Name__'.
+    // Ex: __name__Dto.name = __name__Entity.name;
+    // Ex: __name__Dto.email = __name__Entity.email;
+
     return __name__Dto;
   }
 
   @Post()
-  // @Roles(RoleEnum.ADMIN) // Descomente se Roles for usado globalmente
-  async create(@Body() create__Name__Dto: Create__Name__Dto/*, @Res() res: Response*/) { // Adapte para o ResponseUtil
-    const __name__Entity = await this.create__Name__UseCase.execute(create__Name__Dto);
-    // Adapta para seu ResponseUtil ou para a resposta padrão NestJS
-    // res.status(HttpStatus.CREATED).json(ResponseUtil.success(this.map__Name__EntityToDto(__name__Entity), '__Name__ created successfully.'));
-    return this.map__Name__EntityToDto(__name__Entity); // Retorno padrão NestJS
+  @Roles(RoleEnum.ADMIN)
+  async create(@Body() create__Name__Dto: Create__Name__Dto, @Res() res: Response) {
+    try {
+      const __name__ = await this.create__Name__UseCase.execute(create__Name__Dto);
+      res
+        .status(HttpStatus.CREATED)
+        .json(
+          ResponseUtil.success(
+            this.map__Name__EntityToDto(__name__),
+            '__Name__ created successfully.',
+          ),
+        );
+    } catch (error) {
+      res.status(HttpStatus.BAD_REQUEST).json(ResponseUtil.error(error.message || 'Failed to create __Name__.'));
+    }
   }
 
   @Get()
-  // @Roles(RoleEnum.ADMIN, RoleEnum.USER) // Descomente se Roles for usado globalmente
-  async findAll(/*@Res() res: Response*/) { // Adapte para o ResponseUtil
-    const __names__ = await this.findAll__Names__UseCase.execute({}); // Adicione um objeto vazio ou o DTO de query se necessário
-    // res.status(HttpStatus.OK).json(ResponseUtil.success(__names__.map(this.map__Name__EntityToDto), 'List of __names__ retrieved successfully.'));
-    return __names__.map(this.map__Name__EntityToDto); // Retorno padrão NestJS
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER) 
+  async findAll(@Res() res: Response) {
+    try {
+      const __names__ = await this.findAll__Names__UseCase.execute({}); 
+      res
+        .status(HttpStatus.OK)
+        .json(
+          ResponseUtil.success(
+            __names__.map(this.map__Name__EntityToDto),
+            'List of __names__ retrieved successfully.',
+          ),
+        );
+    } catch (error) {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(ResponseUtil.error(error.message || 'Failed to retrieve __names__.'));
+    }
   }
 
   @Get(':id')
-  // @Roles(RoleEnum.ADMIN, RoleEnum.USER) // Descomente se Roles for usado globalmente
-  async findOne(@Param('id') id: string/*, @Res() res: Response*/) { // Adapte para o ResponseUtil
-    const __name__Entity = await this.get__Name__ByIdUseCase.execute({ id }); // Passa ID como objeto
-    // res.status(HttpStatus.OK).json(ResponseUtil.success(this.map__Name__EntityToDto(__name__Entity), '__Name__ retrieved successfully.'));
-    return this.map__Name__EntityToDto(__name__Entity); // Retorno padrão NestJS
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER) 
+  async findOne(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const __name__ = await this.get__Name__ByIdUseCase.execute(id);
+      res
+        .status(HttpStatus.OK)
+        .json(
+          ResponseUtil.success(
+            this.map__Name__EntityToDto(__name__),
+            '__Name__ retrieved successfully.',
+          ),
+        );
+    } catch (error) {
+      res.status(HttpStatus.BAD_REQUEST).json(ResponseUtil.error(error.message || 'Failed to retrieve __Name__.'));
+    }
   }
 
-  // EXEMPLOS ADICIONAIS DO SEU USER CONTROLLER (adicione se forem universais)
-  // @Get('public/products')
-  // @Roles(RoleEnum.VISITOR, RoleEnum.USER, RoleEnum.ADMIN)
-  // getPublicProducts(@Res() res: Response) { /* ... */ }
+  @Put(':id')
+  @Roles(RoleEnum.ADMIN)
+  async update(@Param('id') id: string, @Body() update__Name__Dto: Update__Name__Dto, @Res() res: Response) {
+    try {
+      const updated__name__ = await this.update__Name__UseCase.execute(id, update__Name__Dto);
+      res
+        .status(HttpStatus.OK)
+        .json(
+          ResponseUtil.success(
+            this.map__Name__EntityToDto(updated__name__),
+            '__Name__ updated successfully.',
+          ),
+        );
+    } catch (error) {
+      res.status(HttpStatus.BAD_REQUEST).json(ResponseUtil.error(error.message || 'Failed to update __Name__.'));
+    }
+  }
 
-  // @Post('admin/products')
-  // @Roles(RoleEnum.ADMIN)
-  // createProduct(@Res() res: Response) { /* ... */ }
+  @Delete(':id')
+  @Roles(RoleEnum.ADMIN)
+  async remove(@Param('id') id: string, @Res() res: Response) {
+    try {
+      await this.delete__Name__UseCase.execute(id);
+      res.status(HttpStatus.NO_CONTENT).json(ResponseUtil.success(null, '__Name__ deleted successfully.')); 
+    } catch (error) {
+      res.status(HttpStatus.BAD_REQUEST).json(ResponseUtil.error(error.message || 'Failed to delete __Name__.'));
+    }
+  }
 }

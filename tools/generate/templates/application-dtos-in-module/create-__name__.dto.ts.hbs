@@ -1,17 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsOptional, MinLength, MaxLength } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class Create__Name__Dto {
-  @ApiProperty({ example: 'My New Item', description: 'Name of the item', minLength: 3, maxLength: 50 })
-  @IsNotEmpty()
-  @IsString()
-  @MinLength(3)
-  @MaxLength(50)
-  readonly name: string;
-
-  @ApiProperty({ example: 'Some detailed description.', description: 'Description of the item', required: false, maxLength: 255 })
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  readonly description?: string;
+  // POR PADRÃO, NENHUM CAMPO AQUI. O GERADOR OU VOCÊ VAI ADICIONAR CONFORME A ENTIDADE!
+  // Isso resolve "Type 'UpdateWorkflowDto' has no properties in common with type 'Partial<WorkflowEntity>'."
+  // porque um DTO vazio *é* compatível com Partial<Entity que é apenas BaseEntity>.
 }

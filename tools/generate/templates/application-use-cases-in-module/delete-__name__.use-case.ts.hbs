@@ -1,0 +1,17 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { __Name__Repository } from '@domain/repositories/__name__.repository';
+
+@Injectable()
+export class Delete__Name__UseCase {
+  constructor(
+    private readonly __name__Repository: __Name__Repository,
+  ) {}
+
+  async execute(id: string): Promise<void> {
+    const exists = await this.__name__Repository.findById(id);
+    if (!exists) {
+      throw new NotFoundException(`__Name__ com ID ${id} não encontrado.`);
+    }
+    await this.__name__Repository.delete(id);
+  }
+}

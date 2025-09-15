@@ -1,40 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { IsUUID, IsDefined } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
-import { __Name__Repository } from '@domain/repositories/__name__.repository'; 
-import { __Name__Dto } from '../dtos/__name__.dto'; // Relativo a ..dtos
-
-export class Get__Name__ByIdQuery { 
-  @ApiProperty({ description: 'ID of the __name__ to retrieve' })
-  @IsUUID()
-  @IsDefined()
-  readonly id: string;
-
-  constructor(id: string) {
-    this.id = id;
-  }
-}
+import { __Name__Entity } from '@domain/entities/__name__.entity';
+import { __Name__Repository } from '@domain/repositories/__name__.repository';
 
 @Injectable()
-export class Get__Name__ByIdUseCase { 
+export class Get__Name__ByIdUseCase {
   constructor(
     private readonly __name__Repository: __Name__Repository,
   ) {}
 
-  async execute(query: Get__Name__ByIdQuery): Promise<__Name__Dto> { 
-    const { id } = query;
+  async execute(id: string): Promise<__Name__Entity> { 
+    // CORREÇÃO: O seu GetUserByIdUseCase espera 'id: string' diretamente
     const __name__ = await this.__name__Repository.findById(id);
-
     if (!__name__) {
-      throw new NotFoundException(`__Name__ with ID '${id}' not found.`);
+      throw new NotFoundException(`__Name__ com ID ${id} não encontrado.`);
     }
-
-    return new __Name__Dto({
-      id: __name__.id.value,
-      name: __name__.name,
-      description: __name__.description,
-      createdAt: __name__.createdAt,
-      updatedAt: __name__.updatedAt,
-    });
+    return __name__;
   }
 }

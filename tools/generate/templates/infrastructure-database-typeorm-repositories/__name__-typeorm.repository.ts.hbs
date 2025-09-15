@@ -1,21 +1,18 @@
+// src/infrastructure/database/typeorm/repositories/__name__-typeorm.repository.ts.hbs
+
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm'; // Use InjectRepository em vez de InjectDataSource se BaseTypeOrmRepository já usa
-import { Repository, DeepPartial } from 'typeorm'; // Adicionado DeepPartial
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, DeepPartial } from 'typeorm';
 
 import { __Name__Entity } from '@domain/entities/__name__.entity'; 
 import { __Name__Repository } from '@domain/repositories/__name__.repository'; 
 import { __Name__Schema } from '@infra/database/typeorm/entities/__name__.schema'; 
-import { BaseTypeOrmRepository } from './base-typeorm.repository'; // Assumindo BaseTypeOrmRepository aqui.
-
-// IMPORTAÇÕES PARA RELAÇÕES (COMENTADOS/EXEMPLOS)
-// import { RoleEntity } from '@domain/entities/role.entity'; 
-// import { PermissionEntity } from '@domain/entities/permission.entity'; 
-// import { RoleSchema } from '@infra/database/typeorm/entities/role.schema'; 
+import { BaseTypeOrmRepository } from '@infra/database/typeorm/repositories/base-typeorm.repository'; 
 
 @Injectable()
 export class TypeOrm__Name__Repository
   extends BaseTypeOrmRepository<__Name__Entity, __Name__Schema>
-  implements __Name__Repository {
+  implements __Name__Repository { // A interface __Name__Repository agora não adiciona métodos extras!
 
   constructor(
     @InjectRepository(__Name__Schema)
@@ -24,58 +21,60 @@ export class TypeOrm__Name__Repository
     super(ormRepository);
   }
 
-  // MÉTODOS DE CONSULTA CUSTOMIZADOS (conforme o contrato __Name__Repository)
-  async findByName(name: string): Promise<__Name__Entity | null> {
-    const schema = await this.ormRepository.findOne({ 
-      where: { name },
-      // relations: ['roles', 'roles.permissions'], // Exemplo para entidades com relações
-    });
-    return schema ? this.mapSchemaToEntity(schema) : null;
-  }
-
-  async findByCondition(condition: any): Promise<__Name__Entity[]> {
-    const schemas = await this.ormRepository.find({ 
-      where: condition,
-      // relations: ['roles', 'roles.permissions'],
-    });
-    return schemas.map(this.mapSchemaToEntity);
-  }
+  // === Implemente aqui QUALQUER MÉTODO CUSTOMIZADO DEFINIDO em __Name__Repository. ===
+  // COMO A INTERFACE __Name__Repository ESTÁ LIMPA AGORA, POR PADRÃO ESTA SEÇÃO FICA VAZIA.
+  // EXEMPLOS DE MÉTODOS SE A INTERFACE TIVESSE (seu gerador precisaria inserir):
+  // async findByUniqueField(value: string): Promise<__Name__Entity | null> {
+  //   const schema = await this.ormRepository.findOne({ where: { name: value } as any });
+  //   return schema ? this.mapSchemaToEntity(schema) : null;
+  // }
+  // async findByName(name: string): Promise<__Name__Entity | null> {
+  //   const schema = await this.ormRepository.findOne({ where: { name: name } as any });
+  //   return schema ? this.mapSchemaToEntity(schema) : null;
+  // }
 
   // ========================================================
-  // === MAPPERS entre Schema e Entity (Baseado no seu exemplo de User) ===
+  // === MAPPERS entre Schema e Entity (Lida apenas com propriedades da Base) ===
   // ========================================================
 
   protected mapSchemaToEntity(schema: __Name__Schema): __Name__Entity {
-    const entity = new __Name__Entity({ name: schema.name, description: schema.description });
-    entity.id = schema.id; // Assume que BaseEntity/AggregateRoot tem um 'id' público ou setter
+    const entity = new __Name__Entity(); 
+    entity.id = schema.id; 
     entity.createdAt = schema.createdAt;
     entity.updatedAt = schema.updatedAt;
 
-    // Lógica para mapear relações, se houver
-    // Ex: entity.roles = schema.roles ? schema.roles.map((roleSchema) => { ... }) : [];
+    // TODO: Mapeie aqui as propriedades ESPECÍFICAS de __Name__ se houver no Schema.
+    // O template está no modo BÁSICO/LIMPO, então não há por padrão.
+    // Ex: entity.someSpecificField = schema.someSpecificField;
 
+    // TODO: Lógica para mapear relações, se houver
     return entity;
   }
 
   protected mapEntityToSchema(entity: __Name__Entity): __Name__Schema {
     const schema = new __Name__Schema();
-    if (entity.id) schema.id = entity.id; // IDs devem ser definidos ao salvar novas entidades, senão TypeORM gera.
-    schema.name = entity.name;
-    schema.description = entity.description;
+    if (entity.id) schema.id = entity.id; 
+    
+    schema.createdAt = entity.createdAt; 
+    schema.updatedAt = entity.updatedAt; 
 
-    // Lógica para mapear relações, se houver
-    // Ex: schema.roles = entity.roles ? entity.roles.map((roleEntity) => { ... }) : [];
+    // TODO: Mapeie aqui as propriedades ESPECÍFICAS de __Name__ se houver na Entity.
+    // O template está no modo BÁSICO/LIMPO, então não há por padrão.
+    // Ex: schema.someSpecificField = entity.someSpecificField;
 
+    // TODO: Lógica para mapear relações
     return schema;
   }
 
   protected mapPartialEntityToSchema(partialEntity: Partial<__Name__Entity>): DeepPartial<__Name__Schema> {
     const partialSchema: DeepPartial<__Name__Schema> = {};
-    if (partialEntity.name !== undefined) partialSchema.name = partialEntity.name;
-    if (partialEntity.description !== undefined) partialSchema.description = partialEntity.description;
+    
+    if (partialEntity.createdAt !== undefined) partialSchema.createdAt = partialEntity.createdAt;
+    if (partialEntity.updatedAt !== undefined) partialSchema.updatedAt = partialEntity.updatedAt;
 
-    // Lógica para mapear relações parciais
-    // Ex: if (partialEntity.roles !== undefined) partialSchema.roles = partialEntity.roles.map(r => { ... });
+    // TODO: Mapeie aqui as propriedades parciais ESPECÍFICAS de __Name__.
+    // O template está no modo BÁSICO/LIMPO, então não há por padrão.
+    // Ex: if (partialEntity.someSpecificField !== undefined) partialSchema.someSpecificField = partialEntity.someSpecificField;
     
     return partialSchema;
   }

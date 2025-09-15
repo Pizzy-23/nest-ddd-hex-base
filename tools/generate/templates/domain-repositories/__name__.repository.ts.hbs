@@ -1,8 +1,10 @@
-import { __Name__Entity } from '../entities/__name__.entity'; 
-import { BaseRepository } from './base.repository'; 
+import { __Name__Entity } from '@domain/entities/__name__.entity';
+import { BaseRepository } from '@domain/repositories/base.repository'; 
 
+// Esta interface provê o contrato para as operações de persistência
+// específicas da entidade __Name__. Ela estende o BaseRepository,
+// o que significa que já terá os métodos CRUD básicos (save, findById, findAll, delete, edit).
 export abstract class __Name__Repository extends BaseRepository<__Name__Entity> {
-  // abstract findByEmail(email: string): Promise<__Name__Entity | null>; // Exemplo do User
-  abstract findByName(name: string): Promise<__Name__Entity | null>; // Adicionado findByName, se sua entidade o usa.
-  abstract findByCondition(condition: any): Promise<__Name__Entity[]>; // Adicionado findByCondition
+  // TODO: Adicione aqui métodos de consulta ou modificação específicos
+  // que o domínio de __Name__ precisa e que não são cobertos pelo BaseRepository.
 }

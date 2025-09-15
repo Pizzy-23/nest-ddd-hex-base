@@ -1,0 +1,26 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Update__Name__Dto } from '../dtos/update-__name__.dto'; 
+import { __Name__Entity } from '@domain/entities/__name__.entity';
+import { __Name__Repository } from '@domain/repositories/__name__.repository';
+
+@Injectable()
+export class Update__Name__UseCase {
+  constructor(
+    private readonly __name__Repository: __Name__Repository,
+  ) {}
+
+  async execute(id: string, dto: Update__Name__Dto): Promise<__Name__Entity> {
+    // O findById no BaseTypeOrmRepository já lança NotFoundException.
+    // Você pode ter esta verificação para garantir a clareza ou removê-la se confiar 100% no repo base.
+    const existing__name__ = await this.__name__Repository.findById(id);
+    if (!existing__name__) {
+      throw new NotFoundException(`__Name__ com ID ${id} não encontrado.`);
+    }
+
+    // O método `edit` do seu BaseTypeOrmRepository espera o ID e o DTO parcial.
+    const updated__name__ = await this.__name__Repository.edit(id, dto); 
+    
+    // Retornamos a entidade atualizada.
+    return updated__name__;
+  }
+}

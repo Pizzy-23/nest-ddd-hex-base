@@ -1,45 +1,62 @@
+// src/modules/__names__/__name__.module.ts.hbs
+
 import { Module } from '@nestjs/common';
-import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-// CONTROLLERS (GLOBAL)
-import { __Name__Controller } from '@infra/http/controllers/__name__.controller'; 
+// CONTROLLERS
+import { __Name__Controller } from '@infra/http/controllers/__name__.controller';
 
-// REPOSITORIES (Domain Port & Infrastructure Implementation, GLOBAIS)
-import { __Name__Repository } from '@domain/repositories/__name__.repository'; 
-import { __Name__TypeormRepository } from '@infra/database/typeorm/repositories/__name__-typeorm.repository'; 
-import { __Name__Schema } from '@infra/database/typeorm/entities/__name__.schema'; 
+// SCHEMAS / ENTITIES (DO ORM)
+import { __Name__Schema } from '@infra/database/typeorm/entities/__name__.schema';
 
-// USE CASES (Serão injetados nos controllers, DENTRO do MÓDULO, não global)
-import { Create__Name__UseCase } from './use-cases/create-__name__.use-case'; 
-import { FindAll__Names__UseCase } from './use-cases/find-all-__names__.use-case'; 
-import { Get__Name__ByIdUseCase } from './use-cases/get-__name__-by-id.use-case'; 
+// REPOSITORIES (PORTAS DE DOMÍNIO E SUAS ADAPTADORES DE INFRAESTRUTURA)
+import { __Name__Repository } from '@domain/repositories/__name__.repository';
+import { TypeOrm__Name__Repository } from '@infra/database/typeorm/repositories/__name__-typeorm.repository';
 
-// Outros
-import { UnitOfWork } from '@src/libs/ddd/domain/base-classes/unit-of-work'; 
-import { ExceptionHelper } from '@src/libs/ddd/exception-helper'; 
+// USE CASES (IMPORTS INDIVIDUAIS - conforme a sua `UserModule`)
+// O gerador terá que injetar esses imports para cada use case criado.
+import { Create__Name__UseCase, FindAll__Names__UseCase, Get__Name__ByIdUseCase, Update__Name__UseCase,Delete__Name__UseCase } from './use-cases';
 
-const useCases = [
-  Create__Name__UseCase,
-  FindAll__Names__UseCase,
-  Get__Name__ByIdUseCase,
-];
+
+// TODO: Importe outros repositórios, use cases ou dependências necessárias para este módulo.
+// Se sua entidade __Name__ tem relacionamento com Roles, por exemplo:
+// import { RoleRepository } from '@domain/repositories/role.repository';
+// import { TypeOrmRoleRepository } from '@infra/database/typeorm/repositories/role-typeorm.repository';
+// import { RoleSchema } from '@infra/database/typeorm/entities/role.schema';
 
 @Module({
-  imports: [CqrsModule, TypeOrmModule.forFeature([__Name__Schema])],
-  controllers: [__Name__Controller],
+  imports: [
+    // Registra as entidades do TypeORM específicas deste módulo.
+    // Adicione RoleSchema, PermissionSchema etc. aqui, se seu módulo precisar.
+    TypeOrmModule.forFeature([__Name__Schema]), 
+  ],
+  controllers: [
+    __Name__Controller, 
+  ],
   providers: [
-    ...useCases,
-    UnitOfWork,
-    ExceptionHelper,
+    // Listagem explícita de todos os Casos de Uso (providers) para o CRUD completo
+    Create__Name__UseCase,
+    FindAll__Names__UseCase,
+    Get__Name__ByIdUseCase,
+    Update__Name__UseCase, 
+    Delete__Name__UseCase, 
+    // TODO: Adicione outros Use Cases específicos deste módulo aqui (ex: InitDefault__Name__PermissionsUseCase)
+
+    // Conecta a "porta" (classe de domínio Repository) com o "adaptador" (implementação TypeORM)
     {
-      provide: __Name__Repository,
-      useClass: __Name__TypeormRepository,
+      provide: __Name__Repository,         // O token de injeção (a classe do repositório de domínio)
+      useClass: TypeOrm__Name__Repository, // A implementação concreta do repositório TypeORM
     },
+    // TODO: Prove outros repositórios necessários para este módulo, se a entidade precisar
+    // { provide: RoleRepository, useClass: TypeOrmRoleRepository },
+    // { provide: PermissionRepository, useClass: TypeOrmPermissionRepository },
   ],
   exports: [
+    // Exporta o repositório de domínio para que outros módulos possam injetá-lo e utilizá-lo.
     __Name__Repository,
-    UnitOfWork,
+    // TODO: Exporta outros repositórios de domínio ou providers que outros módulos *precisem* consumir.
+    // Ex: RoleRepository,
+    // E se houver algum Use Case que é invocado de forma externa e deve ser público.
   ],
 })
 export class __Name__Module {}
