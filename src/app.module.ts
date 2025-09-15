@@ -10,7 +10,7 @@ import { InitDefaultRolesPermissionsUseCase } from './application/modules/user/u
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot(typeOrmConfig),
     AuthModule,
-    UserModule,
+    UserModule
   ],
   controllers: [],
   providers: [],
