@@ -1,0 +1,83 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  // Removendo UseGuards e Roles (podem ser adicionados manualmente conforme o módulo global os define)
+  // UseGuards, 
+  // Res, 
+  // HttpStatus,
+  // Para Responses mais padronizadas, pode usar o Response da NestJS, ou o ResponseUtil.
+} from '@nestjs/common';
+import { Create__Name__Dto } from '@app/modules/__name__/dtos/create-__name__.dto'; 
+import { __Name__Dto } from '@app/modules/__name__/dtos/__name__.dto'; 
+import { Create__Name__UseCase } from '@app/modules/__name__/use-cases/create-__name__.use-case'; 
+import { FindAll__Names__UseCase } from '@app/modules/__name__/use-cases/find-all-__names__.use-case'; 
+import { Get__Name__ByIdUseCase } from '@app/modules/__name__/use-cases/get-__name__-by-id.use-case'; 
+
+// IMPORTAÇÕES GLOBAIS COM ALIAS (RoleEnum, AuthGuard, ResponseUtil)
+// import { AuthGuard } from '@app/modules/auth/guards/auth.guard'; 
+// import { RolesGuard } from '@app/modules/auth/guards/roles.guard'; 
+// import { Roles } from '@app/modules/auth/decorators/roles.decorator'; 
+// import { RoleEnum } from '@domain/constants/roles.enum'; 
+// import { Response } from 'express'; // Para usar express res diretamente
+// import { ResponseUtil } from '@infra/common/utils/response.util'; 
+// import { __Name__Entity } from '@domain/entities/__name__.entity'; // Importa a entidade de domínio global
+
+@Controller('__names__')
+// @UseGuards(AuthGuard, RolesGuard) // Descomente e ajuste conforme necessário para o módulo Auth
+export class __Name__Controller {
+  constructor(
+    private readonly create__Name__UseCase: Create__Name__UseCase,
+    private readonly findAll__Names__UseCase: FindAll__Names__UseCase,
+    private readonly get__Name__ByIdUseCase: Get__Name__ByIdUseCase,
+  ) {}
+
+  private map__Name__EntityToDto(__name__: __Name__Entity): __Name__Dto {
+    const __name__Dto = new __Name__Dto({ // Adapta para usar construtor do DTO se aplicável
+      id: __name__.id,
+      name: __name__.name,
+      description: __name__.description,
+      // outros campos da sua entidade
+      // ex: roles: __name__.roles ? __name__.roles.map((role) => role.name) : [],
+      createdAt: __name__.createdAt, // BaseEntity deve ter createdAt/updatedAt
+      updatedAt: __name__.updatedAt,
+    });
+    return __name__Dto;
+  }
+
+  @Post()
+  // @Roles(RoleEnum.ADMIN) // Descomente se Roles for usado globalmente
+  async create(@Body() create__Name__Dto: Create__Name__Dto/*, @Res() res: Response*/) { // Adapte para o ResponseUtil
+    const __name__Entity = await this.create__Name__UseCase.execute(create__Name__Dto);
+    // Adapta para seu ResponseUtil ou para a resposta padrão NestJS
+    // res.status(HttpStatus.CREATED).json(ResponseUtil.success(this.map__Name__EntityToDto(__name__Entity), '__Name__ created successfully.'));
+    return this.map__Name__EntityToDto(__name__Entity); // Retorno padrão NestJS
+  }
+
+  @Get()
+  // @Roles(RoleEnum.ADMIN, RoleEnum.USER) // Descomente se Roles for usado globalmente
+  async findAll(/*@Res() res: Response*/) { // Adapte para o ResponseUtil
+    const __names__ = await this.findAll__Names__UseCase.execute({}); // Adicione um objeto vazio ou o DTO de query se necessário
+    // res.status(HttpStatus.OK).json(ResponseUtil.success(__names__.map(this.map__Name__EntityToDto), 'List of __names__ retrieved successfully.'));
+    return __names__.map(this.map__Name__EntityToDto); // Retorno padrão NestJS
+  }
+
+  @Get(':id')
+  // @Roles(RoleEnum.ADMIN, RoleEnum.USER) // Descomente se Roles for usado globalmente
+  async findOne(@Param('id') id: string/*, @Res() res: Response*/) { // Adapte para o ResponseUtil
+    const __name__Entity = await this.get__Name__ByIdUseCase.execute({ id }); // Passa ID como objeto
+    // res.status(HttpStatus.OK).json(ResponseUtil.success(this.map__Name__EntityToDto(__name__Entity), '__Name__ retrieved successfully.'));
+    return this.map__Name__EntityToDto(__name__Entity); // Retorno padrão NestJS
+  }
+
+  // EXEMPLOS ADICIONAIS DO SEU USER CONTROLLER (adicione se forem universais)
+  // @Get('public/products')
+  // @Roles(RoleEnum.VISITOR, RoleEnum.USER, RoleEnum.ADMIN)
+  // getPublicProducts(@Res() res: Response) { /* ... */ }
+
+  // @Post('admin/products')
+  // @Roles(RoleEnum.ADMIN)
+  // createProduct(@Res() res: Response) { /* ... */ }
+}

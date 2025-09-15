@@ -1,0 +1,8 @@
+import { __Name__Entity } from '../entities/__name__.entity'; 
+import { BaseRepository } from './base.repository'; 
+
+export abstract class __Name__Repository extends BaseRepository<__Name__Entity> {
+  // abstract findByEmail(email: string): Promise<__Name__Entity | null>; // Exemplo do User
+  abstract findByName(name: string): Promise<__Name__Entity | null>; // Adicionado findByName, se sua entidade o usa.
+  abstract findByCondition(condition: any): Promise<__Name__Entity[]>; // Adicionado findByCondition
+}

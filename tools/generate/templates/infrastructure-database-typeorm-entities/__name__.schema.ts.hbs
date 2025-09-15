@@ -1,0 +1,21 @@
+import { Entity, Column } from 'typeorm'; // Importa apenas o necessário para seu schema
+import { BaseTypeOrmSchema } from './base-typeorm.schema'; // Assumindo BaseTypeOrmSchema em src/infrastructure/database/typeorm/entities
+
+@Entity('__names__')
+export class __Name__Schema extends BaseTypeOrmSchema {
+  @Column({ type: 'varchar', length: 50, nullable: false })
+  name: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  description?: string;
+
+  // Add more fields here based on your entity properties
+  // Ex: @Column({ type: 'varchar', unique: true, nullable: false })
+  // email: string;
+  // @Column({ type: 'varchar', nullable: false })
+  // passwordHash: string;
+
+  // Adicionar relações, se houver (muito comum, ex: para Role)
+  // @ManyToOne(() => RoleSchema, role => role.users, { eager: true }) // Assumindo RoleSchema existe
+  // roles: RoleSchema[];
+}

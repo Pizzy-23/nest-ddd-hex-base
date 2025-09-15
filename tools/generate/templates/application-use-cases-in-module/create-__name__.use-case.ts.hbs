@@ -1,0 +1,48 @@
+import { Injectable, ConflictException } from '@nestjs/common';
+import { Create__Name__Dto } from '../dtos/create-__name__.dto'; // Relativo a ..dtos
+import { __Name__Entity } from '@domain/entities/__name__.entity'; // Alias para global domain entities
+import { __Name__Repository } from '@domain/repositories/__name__.repository'; // Alias para global domain repositories
+import { UnitOfWork } from '@src/libs/ddd/domain/base-classes/unit-of-work'; // Alias para libs
+// Assumindo RoleEnum ou outro enum em @domain/constants
+// import { RoleEnum } from '@domain/constants/roles.enum'; 
+// import { EncryptionUtil } from '@infra/common/utils/encryption.util'; 
+
+@Injectable()
+export class Create__Name__UseCase {
+  constructor(
+    private readonly __name__Repository: __Name__Repository,
+    private readonly unitOfWork: UnitOfWork, // Use UnitOfWork se for usado na BaseRepository ou Service.
+    // Se o Create UseCase tiver lógica complexa e outros repos/services, injete aqui.
+    // private readonly otherService: OtherService, 
+    // private readonly roleRepository: RoleRepository,
+  ) {}
+
+  async execute(
+    dto: Create__Name__Dto,
+    // Adicione argumentos opcionais ou obrigatórios aqui, ex: assignRole?: RoleEnum,
+  ): Promise<__Name__Entity> { 
+    // Exemplo de lógica com UnitOfWork, conflito e entidade
+    // const existing__name__ = await this.__name__Repository.findByName(dto.name);
+    // if (existing__name__) {
+    //   throw new ConflictException('Item com este nome já existe.');
+    // }
+
+    // Cria a entidade
+    const __name__ = __Name__Entity.create({ 
+      name: dto.name, 
+      description: dto.description,
+      // outros campos
+    });
+
+    await this.unitOfWork.start();
+    try {
+      // Salva a entidade
+      const saved__name__ = await this.__name__Repository.save(__name__);
+      await this.unitOfWork.commit();
+      return saved__name__; 
+    } catch (error) {
+      await this.unitOfWork.rollback();
+      throw error;
+    }
+  }
+}

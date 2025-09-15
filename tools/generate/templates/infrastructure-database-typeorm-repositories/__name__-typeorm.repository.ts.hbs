@@ -1,0 +1,82 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm'; // Use InjectRepository em vez de InjectDataSource se BaseTypeOrmRepository já usa
+import { Repository, DeepPartial } from 'typeorm'; // Adicionado DeepPartial
+
+import { __Name__Entity } from '@domain/entities/__name__.entity'; 
+import { __Name__Repository } from '@domain/repositories/__name__.repository'; 
+import { __Name__Schema } from '@infra/database/typeorm/entities/__name__.schema'; 
+import { BaseTypeOrmRepository } from './base-typeorm.repository'; // Assumindo BaseTypeOrmRepository aqui.
+
+// IMPORTAÇÕES PARA RELAÇÕES (COMENTADOS/EXEMPLOS)
+// import { RoleEntity } from '@domain/entities/role.entity'; 
+// import { PermissionEntity } from '@domain/entities/permission.entity'; 
+// import { RoleSchema } from '@infra/database/typeorm/entities/role.schema'; 
+
+@Injectable()
+export class TypeOrm__Name__Repository
+  extends BaseTypeOrmRepository<__Name__Entity, __Name__Schema>
+  implements __Name__Repository {
+
+  constructor(
+    @InjectRepository(__Name__Schema)
+    protected readonly ormRepository: Repository<__Name__Schema>,
+  ) {
+    super(ormRepository);
+  }
+
+  // MÉTODOS DE CONSULTA CUSTOMIZADOS (conforme o contrato __Name__Repository)
+  async findByName(name: string): Promise<__Name__Entity | null> {
+    const schema = await this.ormRepository.findOne({ 
+      where: { name },
+      // relations: ['roles', 'roles.permissions'], // Exemplo para entidades com relações
+    });
+    return schema ? this.mapSchemaToEntity(schema) : null;
+  }
+
+  async findByCondition(condition: any): Promise<__Name__Entity[]> {
+    const schemas = await this.ormRepository.find({ 
+      where: condition,
+      // relations: ['roles', 'roles.permissions'],
+    });
+    return schemas.map(this.mapSchemaToEntity);
+  }
+
+  // ========================================================
+  // === MAPPERS entre Schema e Entity (Baseado no seu exemplo de User) ===
+  // ========================================================
+
+  protected mapSchemaToEntity(schema: __Name__Schema): __Name__Entity {
+    const entity = new __Name__Entity({ name: schema.name, description: schema.description });
+    entity.id = schema.id; // Assume que BaseEntity/AggregateRoot tem um 'id' público ou setter
+    entity.createdAt = schema.createdAt;
+    entity.updatedAt = schema.updatedAt;
+
+    // Lógica para mapear relações, se houver
+    // Ex: entity.roles = schema.roles ? schema.roles.map((roleSchema) => { ... }) : [];
+
+    return entity;
+  }
+
+  protected mapEntityToSchema(entity: __Name__Entity): __Name__Schema {
+    const schema = new __Name__Schema();
+    if (entity.id) schema.id = entity.id; // IDs devem ser definidos ao salvar novas entidades, senão TypeORM gera.
+    schema.name = entity.name;
+    schema.description = entity.description;
+
+    // Lógica para mapear relações, se houver
+    // Ex: schema.roles = entity.roles ? entity.roles.map((roleEntity) => { ... }) : [];
+
+    return schema;
+  }
+
+  protected mapPartialEntityToSchema(partialEntity: Partial<__Name__Entity>): DeepPartial<__Name__Schema> {
+    const partialSchema: DeepPartial<__Name__Schema> = {};
+    if (partialEntity.name !== undefined) partialSchema.name = partialEntity.name;
+    if (partialEntity.description !== undefined) partialSchema.description = partialEntity.description;
+
+    // Lógica para mapear relações parciais
+    // Ex: if (partialEntity.roles !== undefined) partialSchema.roles = partialEntity.roles.map(r => { ... });
+    
+    return partialSchema;
+  }
+}

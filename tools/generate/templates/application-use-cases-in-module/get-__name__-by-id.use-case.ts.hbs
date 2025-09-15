@@ -1,11 +1,10 @@
-import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { IsUUID, IsDefined } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { __Name__Repository } from '../../domain/repositories/__name__.repository';
-import { __Name__Dto } from '../dtos/__name__.dto';
+import { __Name__Repository } from '@domain/repositories/__name__.repository'; 
+import { __Name__Dto } from '../dtos/__name__.dto'; // Relativo a ..dtos
 
-export class Get__Name__ByIdQuery {
+export class Get__Name__ByIdQuery { 
   @ApiProperty({ description: 'ID of the __name__ to retrieve' })
   @IsUUID()
   @IsDefined()
@@ -16,14 +15,13 @@ export class Get__Name__ByIdQuery {
   }
 }
 
-@QueryHandler(Get__Name__ByIdQuery)
-export class Get__Name__ByIdUseCase implements IQueryHandler<Get__Name__ByIdQuery, __Name__Dto> {
+@Injectable()
+export class Get__Name__ByIdUseCase { 
   constructor(
-    @Inject(__Name__Repository)
-    private readonly __name__Repository: __name__Repository,
+    private readonly __name__Repository: __Name__Repository,
   ) {}
 
-  async execute(query: Get__Name__ByIdQuery): Promise<__Name__Dto> {
+  async execute(query: Get__Name__ByIdQuery): Promise<__Name__Dto> { 
     const { id } = query;
     const __name__ = await this.__name__Repository.findById(id);
 

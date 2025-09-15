@@ -1,12 +1,11 @@
-import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { Injectable } from '@nestjs/common';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNumber, IsOptional, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Inject } from '@nestjs/common';
-import { __Name__Repository } from '../../domain/repositories/__name__.repository';
-import { __Name__Dto } from '../dtos/__name__.dto';
+import { __Name__Repository } from '@domain/repositories/__name__.repository'; 
+import { __Name__Dto } from '../dtos/__name__.dto'; // Relativo a ..dtos
 
-export class FindAll__Names__Query {
+export class FindAll__Names__Query { 
   @ApiPropertyOptional({ description: 'Number of items to skip for pagination' })
   @IsOptional()
   @IsNumber()
@@ -26,14 +25,13 @@ export class FindAll__Names__Query {
   }
 }
 
-@QueryHandler(FindAll__Names__Query)
-export class FindAll__Names__UseCase implements IQueryHandler<FindAll__Names__Query, __Name__Dto[]> {
+@Injectable()
+export class FindAll__Names__UseCase { 
   constructor(
-    @Inject(__Name__Repository)
-    private readonly __name__Repository: __name__Repository,
+    private readonly __name__Repository: __Name__Repository,
   ) {}
 
-  async execute(query: FindAll__Names__Query): Promise<__Name__Dto[]> {
+  async execute(query: FindAll__Names__Query): Promise<__Name__Dto[]> { 
     const { skip, take } = query;
     const __names__ = await this.__name__Repository.findAll(skip, take);
 

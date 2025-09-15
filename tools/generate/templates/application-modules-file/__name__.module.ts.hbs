@@ -1,0 +1,45 @@
+import { Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+// CONTROLLERS (GLOBAL)
+import { __Name__Controller } from '@infra/http/controllers/__name__.controller'; 
+
+// REPOSITORIES (Domain Port & Infrastructure Implementation, GLOBAIS)
+import { __Name__Repository } from '@domain/repositories/__name__.repository'; 
+import { __Name__TypeormRepository } from '@infra/database/typeorm/repositories/__name__-typeorm.repository'; 
+import { __Name__Schema } from '@infra/database/typeorm/entities/__name__.schema'; 
+
+// USE CASES (Serão injetados nos controllers, DENTRO do MÓDULO, não global)
+import { Create__Name__UseCase } from './use-cases/create-__name__.use-case'; 
+import { FindAll__Names__UseCase } from './use-cases/find-all-__names__.use-case'; 
+import { Get__Name__ByIdUseCase } from './use-cases/get-__name__-by-id.use-case'; 
+
+// Outros
+import { UnitOfWork } from '@src/libs/ddd/domain/base-classes/unit-of-work'; 
+import { ExceptionHelper } from '@src/libs/ddd/exception-helper'; 
+
+const useCases = [
+  Create__Name__UseCase,
+  FindAll__Names__UseCase,
+  Get__Name__ByIdUseCase,
+];
+
+@Module({
+  imports: [CqrsModule, TypeOrmModule.forFeature([__Name__Schema])],
+  controllers: [__Name__Controller],
+  providers: [
+    ...useCases,
+    UnitOfWork,
+    ExceptionHelper,
+    {
+      provide: __Name__Repository,
+      useClass: __Name__TypeormRepository,
+    },
+  ],
+  exports: [
+    __Name__Repository,
+    UnitOfWork,
+  ],
+})
+export class __Name__Module {}

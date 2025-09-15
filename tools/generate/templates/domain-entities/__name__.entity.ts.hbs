@@ -1,0 +1,53 @@
+import { BaseEntity } from './base-entity'; // Sua BaseEntity em src/domain/entities/
+import { Uuid } from '@src/libs/ddd/domain/value-objects/uuid.value-object'; 
+import { DomainEvent } from '@src/libs/ddd/domain/domain-events/domain-event'; 
+// Assumindo RoleEntity ou outros entities relacionadas (com alias para o domain)
+// import { RoleEntity } from '@domain/entities/role.entity';
+
+// NOTA: BaseEntity deve extender AggregateRoot ou ser a sua raíz para Uuid, createdAt, etc.
+// O AggregateRoot aqui é usado se BaseEntity não provê essas funcionalidades diretamente.
+// Se BaseEntity já provê, esta entidade apenas estende BaseEntity e usa as propriedades herdadas.
+
+export class __Name__CreatedDomainEvent extends DomainEvent {
+  constructor(props: Omit<__Name__CreatedDomainEvent, 'correlationId' | 'id' | 'createdAt' | 'entityId'>) {
+    super(props);
+  }
+}
+
+export interface Create__Name__Props {
+  name: string;
+  description?: string;
+}
+
+export class __Name__Entity extends BaseEntity { // Alinhado com seu exemplo de UserEntity extends BaseEntity
+  // Propriedades do seu TestEntity (como você as define)
+  name: string;
+  description?: string;
+  // Exemplo para um 'UserEntity':
+  // email: string;
+  // passwordHash: string;
+  // roles: RoleEntity[];
+
+  constructor(props: Create__Name__Props, id?: string) { // Id é string agora para construtor de BaseEntity/TypeOrm
+    super(); // Chama o construtor de BaseEntity
+    if (id) { this.id = id; } // Se BaseEntity lida com o ID
+    this.name = props.name;
+    this.description = props.description;
+  }
+
+  static create(props: Create__Name__Props): __Name__Entity {
+    const __name__ = new __Name__Entity(props);
+    __name__.addEvent( // Método herdado de AggregateRoot ou BaseEntity, se BaseEntity o provê.
+      new __Name__CreatedDomainEvent({
+        aggregateId: __name__.id, // ID da entidade
+        name: __name__.name,
+      }),
+    );
+    return __name__;
+  }
+
+  // Se você tem um setter para o ID em BaseEntity
+  setId(id: string): void {
+      this.id = id;
+  }
+}

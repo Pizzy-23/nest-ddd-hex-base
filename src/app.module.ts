@@ -5,7 +5,6 @@ import { AuthModule } from './application/modules/auth/auth.module';
 import { UserModule } from './application/modules/user/user.module';
 import { typeOrmConfig } from './infrastructure/common/config/typeorm.config';
 import { InitDefaultRolesPermissionsUseCase } from './application/modules/user/use-cases/init-default-roles-permissions.use-case';
-
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
